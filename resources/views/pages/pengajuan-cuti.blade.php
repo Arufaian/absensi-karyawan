@@ -1,6 +1,6 @@
 <x-layouts.app>
 
-    <div class="px-4">
+    <div class="px-4" x-data="leaveForm">
 
         <h2 class="text-2xl font-semibold text-neutral dark:text-warning">Pengajuan cuti</h2>
         <small class="text-xs lg:text-sm opacity-85">Silahkan ajukan cuti anda</small>
@@ -11,9 +11,10 @@
             <x-card class="mt-6 w-full  ">
                 <x-slot name="title">Batas Cuti</x-slot>
                 <div class="space-y-2 text-sm mt-2">
-                    <p><strong>Sisa cuti:</strong> 5 hari</p>
-                    <p><strong>Total jatah cuti:</strong> 12 hari</p>
-                    <p><strong>Cuti diambil:</strong> 7 hari</p>
+                    <p><strong>Sisa cuti:</strong> <span x-text="leaveQuota.total_quota"></span></p>
+                    <p><strong>Total jatah cuti:</strong> <span
+                            x-text="leaveQuota.total_quota - leaveQuota.used_quota"></span></p>
+                    <p><strong>Cuti diambil:</strong> <span x-text="leaveQuota.used_quota"></span></p>
                     <p><strong>Periode:</strong> Jan – Des 2025</p>
                     <div role="alert" class="alert alert-info">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -29,10 +30,14 @@
             <x-card class="mt-6 w-full">
                 <x-slot name="title">Form Pengajuan Cuti</x-slot>
 
-                <div class="" x-data="leaveForm">
+                <div class="">
 
                     <div x-show="successMessage" class="alert alert-success my-2" x-transition>
                         <span x-text="successMessage"></span>
+                    </div>
+
+                    <div x-show="errorMessage" class="alert alert-error my-2" x-transition>
+                        <span x-text="errorMessage"></span>
                     </div>
 
 
@@ -64,34 +69,54 @@
 
 
         <!-- History pengajuan cuti -->
-        <x-card class="mt-8">
-            <x-slot name="title">History pengajuan cuti</x-slot>
+        <div class="" x-init="getLeaveData">
 
-            <div class="overflow-x-auto mt-4">
-                <table class="table w-full">
-                    <thead>
-                        <tr>
-                            <th>Tanggal mulai</th>
-                            <th>Tanggal berakhir</th>
-                            <th>Alasan</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <template x-if="$store.globalState.isLoading">
+                <div class="fixed inset-0 bg-neutral opacity-100 z-50 flex items-center justify-center h-screen">
+                    <span class="loading loading-dots loading-xl text-warning w-[50px]"></span>
+                </div>
+            </template>
+            <x-card class="mt-8">
+                <x-slot name="title">History pengajuan cuti</x-slot>
 
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td>ditolah</td>
-                            <td>ditolah</td>
-                        </tr>
+                <div class="overflow-x-auto mt-4">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>NO</th>
+                                <th>Tanggal mulai</th>
+                                <th>Tanggal berakhir</th>
+                                <th>Alasan</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
 
-                    </tbody>
-                </table>
-            </div>
-        </x-card>
+                        <template x-for="(leave, index) in leaveData" :key="leave.id">
+                            <tbody>
+                                <tr>
+                                    <td x-text="index + 1"></td>
+                                    <td x-text="leave.start_date"></td>
+                                    <td x-text="leave.end_date"></td>
+                                    <td x-text="leave.reason"></td>
+                                    <td>
+                                        <span class="badge"
+                                            :class="{
+                                                'badge-warning': leave.status === 'tertunda',
+                                                'badge-success': leave.status === 'disetujui',
+                                                'badge-error': leave.status === 'ditolak'
+                                            }"
+                                            x-text="leave.status"></span>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </template>
+
+                    </table>
+                </div>
+            </x-card>
+        </div>
+
 
     </div>
 
